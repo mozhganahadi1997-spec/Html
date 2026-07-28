@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بازی تبدیل کسرها | ریاضی</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --red1:#4a0808; --red2:#2b0404; --red3:#7a1010;
+    --gold:#f2c14e; --gold-dark:#b8862a;
+    --wood1:#8b5a2b; --wood2:#5c3618; --cream:#f7e9c9;
+    --ink:#2b1a0e; --green:#5fbf6f; --crimson:#e0526a;
+    --glow: 0 0 16px rgba(242,193,78,.85);
+  }
+  body.cvd-mode{ --green:#2d7dd2; --crimson:#e08424; }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Vazirmatn', sans-serif;
+    min-height:100vh; color:var(--cream); overflow-x:hidden; position:relative;
+    background:
+      radial-gradient(900px 500px at 15% -10%, #7a1414 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 110%, #5c0d0d 0%, transparent 55%),
+      linear-gradient(160deg,var(--red1),var(--red2) 70%);
+  }
+  .ribbon{position:fixed; z-index:0; opacity:.35; background:linear-gradient(135deg,#b31a1a,#6e0d0d); pointer-events:none;}
+  .r1{width:500px; height:500px; top:-260px; left:-260px; transform:rotate(45deg); border-radius:40px;}
+  .r2{width:400px; height:400px; bottom:-220px; right:-220px; transform:rotate(45deg); border-radius:40px;}
+
+  .wrap{position:relative; z-index:1; max-width:980px; margin:0 auto; padding:16px 12px 50px; transition:zoom .2s;}
+  .wrap.fs-2{zoom:1.14;}
+  .wrap.fs-3{zoom:1.28;}
+
+  .frame{
+    border:2px solid var(--gold-dark); border-radius:22px;
+    background:linear-gradient(180deg, rgba(122,16,16,.55), rgba(43,4,4,.75));
+    box-shadow:0 0 0 4px rgba(242,193,78,.08), 0 20px 50px -20px #000c;
+    padding:18px; position:relative;
+  }
+
+  header.top{text-align:center; margin-bottom:10px;}
+  header.top h1{
+    font-family:'Lalezar', cursive; font-size:clamp(24px,4.6vw,38px);
+    margin:4px 0 2px; color:var(--gold); text-shadow:var(--glow); letter-spacing:1px;
+  }
+  header.top p.sub{margin:0; color:#f2d3d3; font-size:13.5px;}
+  .teacher-badge{
+    display:inline-flex; align-items:center; gap:8px; margin-top:8px;
+    background:rgba(242,193,78,.14); border:1px solid var(--gold-dark);
+    border-radius:999px; padding:5px 15px; font-size:12.5px; color:var(--gold);
+  }
+
+  .screen{display:none;}
+  .screen.active{display:block; animation:fadeIn .45s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ---------- START ---------- */
+  .chest-big{font-size:70px; text-align:center; margin:6px 0; filter:drop-shadow(0 8px 10px #0008); animation:bob 2.4s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg);} 50%{transform:translateY(-8px) rotate(2deg);}}
+  .speech{
+    background:var(--cream); color:var(--ink); border-radius:16px; padding:14px 18px;
+    max-width:560px; margin:0 auto 16px; font-size:14.5px; line-height:2; text-align:center;
+    box-shadow:0 10px 25px -10px #000a; position:relative;
+  }
+  .speech::after{content:""; position:absolute; top:-10px; right:50%; transform:translateX(50%); border:10px solid transparent; border-bottom-color:var(--cream);}
+
+  .choice-block{max-width:560px; margin:0 auto 16px; text-align:center;}
+  .choice-block .lbl{color:var(--gold); font-weight:800; font-size:13.5px; margin-bottom:8px; display:block;}
+  .choice-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:14px;}
+  .choice-btn{
+    border:2px solid var(--gold-dark); background:rgba(0,0,0,.25); color:var(--cream);
+    border-radius:12px; padding:9px 16px; font-family:inherit; font-weight:700; font-size:13px;
+    cursor:pointer; transition:.15s;
+  }
+  .choice-btn.selected{background:linear-gradient(180deg,#ffdf8f,var(--gold) 60%, var(--gold-dark)); color:#3a2405; box-shadow:0 4px 10px -4px #000a;}
+  .choice-btn small{display:block; font-weight:500; opacity:.85; font-size:10.5px; margin-top:2px;}
+
+  .name-form{max-width:380px; margin:0 auto; text-align:center;}
+  .name-form label{display:block; margin-bottom:8px; color:var(--gold); font-weight:700;}
+  .name-form input{
+    width:100%; padding:13px 16px; border-radius:12px; border:2px solid var(--gold-dark);
+    background:#fffdf7; color:var(--ink); font-family:inherit; font-size:16px; text-align:center; outline:none;
+    margin-bottom:10px;
+  }
+  .name-form input:focus{border-color:#e0526a; box-shadow:0 0 0 3px rgba(224,82,106,.25);}
+  #p2Block{display:none;}
+
+  .btn{
+    display:inline-block; border:none; cursor:pointer; font-family:inherit; font-weight:800;
+    font-size:16px; padding:13px 30px; border-radius:999px;
+    background:linear-gradient(180deg,#ffdf8f,var(--gold) 60%, var(--gold-dark));
+    color:#3a2405; box-shadow:0 8px 0 #7c5713, 0 14px 24px -8px #000a; transition:transform .08s ease;
+  }
+  .btn:active{transform:translateY(6px); box-shadow:0 2px 0 #7c5713;}
+  .btn.secondary{background:linear-gradient(180deg,#7fd8c8,#2fb8ac 65%, #1f8c82); box-shadow:0 8px 0 #12645c,0 14px 24px -8px #000a; color:#04302b;}
+  .btn.ghost{background:transparent; color:var(--gold); border:2px solid var(--gold-dark); box-shadow:none; padding:11px 26px;}
+  .btn.small{padding:9px 18px; font-size:13px;}
+  .btn:disabled{opacity:.4; cursor:not-allowed; box-shadow:none; transform:none;}
+  .center{text-align:center;}
+
+  /* ---------- ACCESS BAR ---------- */
+  .access-bar{
+    position:fixed; top:10px; right:10px; z-index:75; display:flex; gap:6px;
+  }
+  .access-btn{
+    background:rgba(0,0,0,.4); border:1px solid var(--gold-dark); color:var(--gold);
+    border-radius:10px; padding:6px 9px; font-size:12px; font-weight:700; cursor:pointer;
+  }
+  .access-btn.on{background:var(--gold); color:#3a2405;}
+
+  /* ---------- HUD ---------- */
+  .hud{
+    display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;
+    background:rgba(0,0,0,.28); border:1px solid rgba(242,193,78,.3); border-radius:14px;
+    padding:9px 15px; margin-bottom:8px; font-size:13.5px;
+  }
+  .hud .pill{display:flex; align-items:center; gap:6px; font-weight:700;}
+  .hud .pill b{color:var(--gold);}
+  .stars-mini{color:var(--gold); letter-spacing:1px;}
+  .coin-badge{
+    display:flex; align-items:center; gap:5px; background:linear-gradient(180deg,#ffe9ad,#f2c14e);
+    color:#5c3a06; padding:4px 11px; border-radius:999px; font-weight:800; font-size:12.5px;
+  }
+
+  /* ---------- GAME AREA ---------- */
+  .stage{
+    display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:stretch;
+  }
+  @media (max-width:680px){ .stage{grid-template-columns:1fr;} }
+
+  .sign-wrap{display:flex; flex-direction:column; align-items:center; justify-content:flex-start;}
+  .ropes{width:2px; height:16px; background:#c8a86a; margin-bottom:-2px;}
+  .ropes-row{display:flex; gap:70px;}
+  .sign{
+    background:repeating-linear-gradient(180deg,var(--wood1) 0 10px, var(--wood2) 10px 12px);
+    border:5px solid #4a2c11; border-radius:14px; padding:18px 14px; width:100%; max-width:340px;
+    box-shadow:0 12px 24px -8px #000a, inset 0 0 20px #0006; text-align:center; position:relative;
+  }
+  .sign::before, .sign::after{
+    content:""; position:absolute; top:-14px; width:10px; height:10px; border-radius:50%; background:#c8a86a;
+  }
+  .sign::before{right:26px;} .sign::after{left:26px;}
+
+  .equation-row{display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin-bottom:10px;}
+  .given-frac{display:flex; flex-direction:column; align-items:center; font-weight:900; font-size:26px; color:var(--cream);}
+  .given-frac .line{width:34px; height:3px; background:var(--cream); margin:2px 0;}
+  .eq-sign{font-size:24px; color:var(--gold); font-weight:900;}
+
+  .answer-row{display:flex; align-items:center; justify-content:center; gap:10px; direction:ltr;}
+  .slot{
+    width:52px; height:52px; border-radius:10px; border:3px dashed rgba(247,233,201,.5);
+    display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:900;
+    color:var(--cream); cursor:pointer; background:rgba(0,0,0,.15); transition:.15s; position:relative;
+  }
+  .slot.two-digit{font-size:18px;}
+  .slot.mini{width:44px; height:38px; font-size:19px;}
+  .slot.active{border-color:var(--gold); border-style:solid; box-shadow:0 0 0 4px rgba(242,193,78,.2), var(--glow);}
+  .slot.filled{border-style:solid; border-color:var(--gold); background:rgba(242,193,78,.16);}
+  .slot.correct{border-color:var(--green); background:rgba(95,191,111,.25); color:#e7ffe9;}
+  .slot.wrong{border-color:var(--crimson); background:rgba(224,82,106,.25); color:#ffe4e8;}
+  .slot .mark{position:absolute; top:-9px; left:-9px; font-size:14px; background:#111; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center;}
+  body.cvd-mode .slot.correct{border-width:4px;}
+  body.cvd-mode .slot.wrong{border-width:4px;}
+  .frac-stack{display:flex; flex-direction:column; align-items:center; gap:3px;}
+
+  .check-btn{
+    margin-top:14px; width:100%; padding:11px; border:none; border-radius:10px; cursor:pointer;
+    font-family:inherit; font-weight:800; font-size:14.5px; color:#2b1a0e;
+    background:repeating-linear-gradient(180deg,#c99a5a 0 6px, #a97a3a 6px 8px);
+    border:3px solid #6b4118; box-shadow:0 5px 0 #4a2c11;
+  }
+  .check-btn:active:not(:disabled){transform:translateY(3px); box-shadow:0 2px 0 #4a2c11;}
+  .check-btn:disabled{opacity:.5; cursor:not-allowed;}
+  .feedback{margin-top:10px; font-size:13px; border-radius:10px; padding:9px 11px; display:none; text-align:center;}
+  .feedback.show{display:block;}
+  .feedback.ok{background:rgba(95,191,111,.85); color:#0e3312;}
+  .feedback.bad{background:rgba(224,82,106,.9); color:#3c0a12;}
+  .action-controls{display:flex; flex-direction:column; gap:8px; margin-top:8px;}
+  .action-controls .row{display:flex; gap:8px;}
+  .action-controls .row button{flex:1;}
+
+  .explain-box{
+    display:none; background:#fffdf7; color:var(--ink); border-radius:12px; padding:12px; margin-top:10px;
+    text-align:center; font-size:12.5px; line-height:1.9;
+  }
+  .explain-box.show{display:block; animation:fadeIn .3s ease;}
+  .explain-strip{display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin:8px 0;}
+  .explain-box .grp{display:flex; gap:2px; padding:3px; border-radius:6px; background:rgba(242,193,78,.18); border:1px dashed var(--gold-dark);}
+  .explain-sq{
+    width:16px; height:16px; border-radius:3px; background:var(--gold-dark); opacity:0;
+    animation:popIn .25s ease forwards;
+  }
+  .explain-sq.rem{background:var(--crimson);}
+  @keyframes popIn{from{opacity:0; transform:scale(.4);} to{opacity:1; transform:scale(1);}}
+
+  /* ---------- CHEST PANEL ---------- */
+  .chest-panel{
+    position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 50% 40%, rgba(255,205,110,.18), transparent 65%);
+    border-radius:16px; padding:18px 10px; min-height:280px;
+  }
+  .chest-icon{font-size:76px; filter:drop-shadow(0 10px 14px #0009); animation:bob 2.6s ease-in-out infinite;}
+  .burst{
+    position:absolute; top:50%; left:50%; width:220px; height:220px; transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(255,220,140,.35), transparent 70%);
+    pointer-events:none; animation:pulseburst 2.2s ease-in-out infinite;
+  }
+  @keyframes pulseburst{0%,100%{opacity:.5; transform:translate(-50%,-50%) scale(.9);} 50%{opacity:.9; transform:translate(-50%,-50%) scale(1.08);}}
+
+  .tiles{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:14px; max-width:320px;}
+  .tile{
+    width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:20px; cursor:pointer; color:#5c3a06;
+    background:radial-gradient(circle at 35% 30%, #ffe9ad, #f2c14e 60%, #c98f28);
+    border:2px solid #a97a1e; box-shadow:0 6px 10px -4px #0008; transition:.15s; animation:coinbob 2s ease-in-out infinite;
+    animation-delay:calc(var(--d,0) * .15s);
+  }
+  .tile.two-digit{font-size:14px;}
+  @keyframes coinbob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);}}
+  .tile:hover{transform:scale(1.08);}
+  .tile.used{opacity:.15; pointer-events:none; transform:scale(.7);}
+
+  .progress-chests{display:flex; gap:7px; justify-content:center; flex-wrap:wrap; margin-top:16px;}
+  .progress-chests span{
+    width:26px; height:22px; border-radius:5px; display:flex; align-items:center; justify-content:center;
+    font-size:12px; background:rgba(0,0,0,.25); border:1px solid rgba(242,193,78,.35); color:#e8c99a;
+  }
+  .progress-chests span.done{background:linear-gradient(180deg,#ffe9ad,#f2c14e); color:#5c3a06; border-color:#c98f28;}
+  .progress-chests span.now{border-color:var(--gold); box-shadow:0 0 8px rgba(242,193,78,.7);}
+
+  .helper-note{text-align:center; font-size:12px; color:#f2d3d3; margin-top:10px;}
+
+  /* ---------- INTERSTITIAL ---------- */
+  .inter-card{max-width:480px; margin:0 auto; text-align:center;}
+
+  /* ---------- TUTORIAL (ANIMATED LESSON) ---------- */
+  .tut-wrap{max-width:600px; margin:0 auto; text-align:center;}
+  .tut-progress{display:flex; gap:6px; justify-content:center; margin-bottom:10px;}
+  .tut-progress span{width:24px; height:6px; border-radius:4px; background:rgba(242,193,78,.25);}
+  .tut-progress span.done{background:var(--gold);}
+  .tut-title{font-family:'Lalezar',cursive; font-size:20px; color:var(--gold); text-shadow:var(--glow); margin:4px 0 10px;}
+  .tut-predict-box{
+    background:rgba(0,0,0,.25); border:2px dashed var(--gold-dark); border-radius:14px; padding:14px; margin:10px 0;
+  }
+  .tut-predict-box p{margin:0 0 10px; font-size:13.5px; line-height:1.9;}
+  .tut-guess-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:8px;}
+  .tut-guess-row button{
+    border:2px solid var(--gold-dark); background:rgba(0,0,0,.2); color:var(--cream); border-radius:10px;
+    padding:8px 14px; font-family:inherit; font-weight:800; cursor:pointer; font-size:14px;
+  }
+  .tut-guess-row button.picked{background:linear-gradient(180deg,#ffdf8f,var(--gold) 60%, var(--gold-dark)); color:#3a2405;}
+  .tut-guess-feedback{font-size:12.5px; margin-top:6px; min-height:18px; color:var(--gold);}
+  .tut-anim-box{
+    background:#fffdf7; color:var(--ink); border-radius:14px; padding:14px; margin:12px 0; font-size:12.5px; line-height:1.9;
+    display:none;
+  }
+  .tut-anim-box.show{display:block; animation:fadeIn .3s ease;}
+  .tut-rule-box{
+    background:rgba(242,193,78,.14); border:1px solid var(--gold-dark); border-radius:12px; padding:10px 14px;
+    font-size:12.5px; line-height:1.9; margin-top:10px; display:none;
+  }
+  .tut-rule-box.show{display:block;}
+  .tut-nav{display:flex; gap:10px; justify-content:center; margin-top:16px; flex-wrap:wrap;}
+
+  /* ---------- CREATIVE LAB ---------- */
+  .lab-wrap{max-width:620px; margin:0 auto; text-align:center;}
+  .lab-badge{
+    display:inline-flex; align-items:center; gap:8px; background:rgba(242,193,78,.14); border:1px solid var(--gold-dark);
+    border-radius:999px; padding:5px 16px; font-size:12.5px; color:var(--gold); margin-bottom:10px;
+  }
+  .lab-card{
+    background:rgba(0,0,0,.25); border:2px solid var(--gold-dark); border-radius:16px; padding:16px; margin-bottom:14px; text-align:right;
+  }
+  .lab-card h3{margin:0 0 8px; color:var(--gold); font-size:15.5px; text-align:center;}
+  .lab-card p{font-size:13px; line-height:1.9; margin:0 0 10px;}
+  .lab-target{
+    text-align:center; font-family:'Lalezar',cursive; font-size:24px; color:var(--gold); text-shadow:var(--glow); margin:6px 0 12px;
+  }
+  .lab-input-row{display:flex; gap:8px; justify-content:center; align-items:center; direction:ltr; flex-wrap:wrap; margin-bottom:10px;}
+  .lab-input-row input[type=number]{
+    width:64px; padding:8px; border-radius:8px; border:2px solid var(--gold-dark); background:#fffdf7; color:var(--ink);
+    font-family:inherit; font-size:16px; text-align:center; outline:none;
+  }
+  .lab-input-row span{color:var(--cream); font-weight:800;}
+  .lab-feedback{font-size:13px; border-radius:10px; padding:8px 11px; margin-top:8px; display:none; text-align:center;}
+  .lab-feedback.show{display:block;}
+  .lab-feedback.ok{background:rgba(95,191,111,.85); color:#0e3312;}
+  .lab-feedback.bad{background:rgba(224,82,106,.9); color:#3c0a12;}
+  .lab-feedback.hint{background:rgba(242,193,78,.3); color:var(--gold);}
+  .lab-textarea{
+    width:100%; min-height:70px; border-radius:10px; border:2px solid var(--gold-dark); background:#fffdf7; color:var(--ink);
+    font-family:inherit; font-size:13.5px; padding:10px; resize:vertical; outline:none;
+  }
+  .lab-textarea:focus{border-color:#e0526a;}
+  .lab-skip{font-size:11.5px; color:#f2d3d3; text-align:center; margin-top:6px;}
+  .lab-mini-label{font-size:11.5px; color:#e8c99a; display:block; margin-bottom:6px;}
+
+  /* ---------- END ---------- */
+  .result-card{max-width:620px; margin:0 auto; text-align:center;}
+  .stars-row{font-size:40px; letter-spacing:6px; margin:10px 0;}
+  .score-big{font-family:'Lalezar',cursive; font-size:48px; color:var(--gold); text-shadow:var(--glow);}
+  .actionrow{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:16px;}
+  .copied-msg{font-size:12.5px; color:var(--green); margin-top:8px; display:none;}
+  .copied-msg.show{display:block;}
+  footer{text-align:center; font-size:11.5px; color:#e8bcbc; margin-top:20px;}
+  .confetti{position:fixed; top:-20px; z-index:60; pointer-events:none; border-radius:2px;}
+
+  .duo-compare{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin:14px 0;}
+  .duo-card{
+    background:rgba(0,0,0,.25); border:2px solid var(--gold-dark); border-radius:14px; padding:14px 18px; min-width:150px;
+  }
+  .duo-card.winner{border-color:var(--gold); box-shadow:0 0 16px rgba(242,193,78,.5);}
+  .duo-card h3{margin:2px 0; color:var(--gold); font-size:15px;}
+  .duo-card .sc{font-family:'Lalezar',cursive; font-size:28px; color:var(--cream);}
+
+  #reportDetail{
+    background:#fffdf7; color:var(--ink); border-radius:14px; padding:16px; text-align:right; margin:16px auto; max-width:560px;
+    font-size:12.5px;
+  }
+  #reportDetail h4{margin:4px 0 8px; color:#7a1010; text-align:center; font-size:15px;}
+  #reportDetail table{width:100%; border-collapse:collapse; margin-top:8px; font-size:11.5px;}
+  #reportDetail th, #reportDetail td{border:1px solid #d8c393; padding:4px 6px; text-align:center;}
+  #reportDetail th{background:#f2e6cf;}
+  .insight-line{background:#fdeecb; border-radius:8px; padding:8px; margin-top:8px; font-size:12px; text-align:center;}
+
+  @media (max-width:420px){
+    .slot{width:44px; height:44px; font-size:20px;}
+    .tile{width:42px; height:42px; font-size:17px;}
+  }
+
+  /* ---------- SOUND / WHITEBOARD TOOLBAR ---------- */
+  .tool-fab-row{ position:fixed; left:14px; bottom:14px; z-index:70; display:flex; flex-direction:column; gap:10px; }
+  .fab{
+    width:52px; height:52px; border-radius:50%; border:2px solid var(--gold-dark);
+    background:linear-gradient(180deg,#ffdf8f,var(--gold) 60%, var(--gold-dark));
+    color:#3a2405; font-size:22px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow:0 8px 16px -6px #000a; transition:transform .15s;
+  }
+  .fab:active{transform:scale(.92);}
+  .fab.muted{background:linear-gradient(180deg,#cfcfcf,#9a9a9a); border-color:#6b6b6b; color:#333;}
+
+  .wb-overlay{ position:fixed; inset:0; background:rgba(20,5,5,.75); z-index:80; display:flex; align-items:center; justify-content:center; padding:14px; }
+  .wb-overlay.hidden{display:none;}
+  .wb-panel{ background:#fff; border-radius:16px; width:100%; max-width:720px; box-shadow:0 20px 60px rgba(0,0,0,.5); overflow:hidden; display:flex; flex-direction:column; }
+  .wb-toolbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:#f2e6cf; padding:8px 12px; border-bottom:2px solid #d8c393; }
+  .wb-toolbar .wb-label{font-size:12.5px; font-weight:700; color:#5c3a06; margin-inline-start:auto;}
+  .wb-color{ width:26px; height:26px; border-radius:50%; border:2px solid transparent; cursor:pointer; padding:0; }
+  .wb-color.active{border-color:#333; box-shadow:0 0 0 2px #fff, 0 0 0 4px #333;}
+  .wb-btn{ border:none; background:#fff; border-radius:8px; padding:6px 12px; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer; color:#5c3a06; box-shadow:0 2px 4px rgba(0,0,0,.15); }
+  .wb-btn.active{background:#f2c14e; color:#3a2405;}
+  .wb-btn.close-btn{background:#e0526a; color:#fff;}
+  #wbCanvas{width:100%; height:360px; touch-action:none; background:#fff; display:block; cursor:crosshair;}
+  .wb-hint{text-align:center; font-size:11.5px; color:#8a6a3a; padding:4px 8px 8px; background:#f2e6cf;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #reportDetail, #reportDetail *{visibility:visible;}
+    #reportDetail{position:absolute; top:0; right:0; left:0; margin:0; border:1px solid #333;}
+  }
+</style>
+</head>
+<body>
+<div class="ribbon r1"></div><div class="ribbon r2"></div>
+
+<div class="access-bar">
+  <button class="access-btn" id="contrastBtn" title="حالت کنتراست بالا / رنگ‌کوری">👁️ کنتراست</button>
+  <button class="access-btn" id="fontBtn" title="بزرگ‌نمایی متن">🔤 اندازه</button>
+</div>
+
+<div class="wrap" id="wrapEl">
+  <div class="frame">
+    <header class="top">
+      <h1>🗝️ بازی تبدیل کسرها</h1>
+      <p class="sub">تبدیل کسر بزرگ‌تر از واحد به عدد مخلوط • درس ریاضی</p>
+      <div class="teacher-badge">👩‍🏫 آموزگار: مژگان احدی</div>
+    </header>
+
+    <!-- START -->
+    <section id="screen-start" class="screen active">
+      <div class="chest-big">🧰</div>
+      <div class="speech">
+        سلام! به «صندوقچهٔ کسرها» خوش آمدی. در هر مرحله یک کسر بزرگ‌تر از واحد می‌بینی.
+        باید از سکه‌های عددی‌ای که از صندوقچه بیرون می‌آیند، <b>عدد مخلوط</b> معادل آن را بسازی
+        و پیش از پایان زمان، پاسخت را بررسی کنی.
+      </div>
+
+      <div class="choice-block">
+        <span class="lbl">حالت بازی را انتخاب کن:</span>
+        <div class="choice-row">
+          <button class="choice-btn selected" data-mode="single">👤 تکی</button>
+          <button class="choice-btn" data-mode="duo">👥 دو نفره (نوبتی)</button>
+        </div>
+        <span class="lbl">سطح دشواری:</span>
+        <div class="choice-row">
+          <button class="choice-btn selected" data-diff="easy">🟢 آسان<small>یک‌رقمی</small></button>
+          <button class="choice-btn" data-diff="medium">🟡 متوسط<small>کمی سخت‌تر</small></button>
+          <button class="choice-btn" data-diff="hard">🔴 سخت<small>عدد صحیح دورقمی</small></button>
+        </div>
+      </div>
+
+      <div class="name-form">
+        <label for="stName" id="p1Label">نام و نام خانوادگی‌ات را بنویس:</label>
+        <input type="text" id="stName" placeholder="مثلاً: آروین رضایی" maxlength="40">
+        <div id="p2Block">
+          <label for="stName2">نام بازیکن دوم:</label>
+          <input type="text" id="stName2" placeholder="مثلاً: نگار محمدی" maxlength="40">
+        </div>
+      </div>
+      <div class="center" style="margin-top:18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn ghost" id="tutorialBtn">🎬 آموزش تصویری قبل از بازی</button>
+        <button class="btn" id="startBtn">🚀 شروع بازی</button>
+      </div>
+    </section>
+
+    <!-- ANIMATED TUTORIAL -->
+    <section id="screen-tutorial" class="screen">
+      <div class="tut-wrap">
+        <div class="tut-progress" id="tutProgress"></div>
+        <div class="tut-title" id="tutTitle">آموزش تصویری</div>
+        <div class="tut-predict-box">
+          <p id="tutPredictText"></p>
+          <div class="tut-guess-row" id="tutGuessRow"></div>
+          <div class="tut-guess-feedback" id="tutGuessFeedback"></div>
+        </div>
+        <div class="tut-anim-box" id="tutAnim"></div>
+        <div class="tut-rule-box" id="tutRule"></div>
+        <div class="tut-nav">
+          <button class="btn ghost small" id="tutPrev">▶ مثال قبلی</button>
+          <button class="btn secondary small" id="tutReveal">🔍 نمایش جواب</button>
+          <button class="btn small" id="tutNext">مثال بعدی ◀</button>
+        </div>
+        <p class="helper-note">این آموزش را می‌توانی هر چند بار که خواستی قبل از بازی تماشا کنی.</p>
+      </div>
+    </section>
+
+    <!-- CREATIVE LAB (PROBLEM-SOLVING & CREATIVE THINKING BOOSTER) -->
+    <section id="screen-creative" class="screen">
+      <div class="lab-wrap">
+        <div class="lab-badge">🎨 آزمایشگاه خلاقیت — بخش ویژهٔ تقویت تفکر</div>
+
+        <div class="lab-card" id="labCardEquiv">
+          <h3>۱) یک راه دیگر پیدا کن!</h3>
+          <p>ما این کسر را به عدد مخلوط تبدیل کردیم:</p>
+          <div class="lab-target" id="labEquivTarget"></div>
+          <p>حالا نوبت توست: یک کسرِ <b>متفاوت</b> از کسر اصلی بساز که وقتی ساده شود، دقیقاً همین عدد مخلوط را بدهد. (راهنمایی: صورت و مخرج اصلی را در یک عدد یکسان ضرب کن!)</p>
+          <div class="lab-input-row">
+            <input type="number" id="labEquivNum" min="1" placeholder="صورت">
+            <span>/</span>
+            <input type="number" id="labEquivDen" min="1" placeholder="مخرج">
+          </div>
+          <div class="center"><button class="btn small" id="labEquivCheck">بررسی کن</button></div>
+          <div class="lab-feedback" id="labEquivFeedback"></div>
+        </div>
+
+        <div class="lab-card" id="labCardDesign" style="display:none;">
+          <h3>۲) طراح مسئله شو!</h3>
+          <p>یک کسر بزرگ‌تر از واحد بساز (یعنی صورت از مخرج بزرگ‌تر باشد) و بعد خودت آن را حل کن.</p>
+          <span class="lab-mini-label">کسری که می‌سازی:</span>
+          <div class="lab-input-row">
+            <input type="number" id="labDesignNum" min="2" placeholder="صورت">
+            <span>/</span>
+            <input type="number" id="labDesignDen" min="1" placeholder="مخرج">
+          </div>
+          <div class="center"><button class="btn ghost small" id="labDesignSet">ثبتِ کسر من</button></div>
+          <div id="labDesignSolveBox" style="display:none; margin-top:12px;">
+            <span class="lab-mini-label">حالا حلش کن — عدد مخلوطِ معادل چیست؟</span>
+            <div class="lab-input-row">
+              <input type="number" id="labDesignWhole" min="0" placeholder="عدد صحیح">
+              <span>و</span>
+              <input type="number" id="labDesignRem" min="0" placeholder="صورت">
+              <span>/</span>
+              <span id="labDesignDenShow" style="font-weight:800;"></span>
+            </div>
+            <div class="center"><button class="btn small" id="labDesignCheck">بررسی کن</button></div>
+          </div>
+          <div class="lab-feedback" id="labDesignFeedback"></div>
+        </div>
+
+        <div class="lab-card" id="labCardReflect" style="display:none;">
+          <h3>۳) استراتژی‌ات را بنویس</h3>
+          <p>برای حل کسری که خودت ساختی، چه فکری کردی؟ چه استراتژی به‌کار بردی؟ (نوشتن این بخش اختیاری است)</p>
+          <textarea class="lab-textarea" id="labReflection" placeholder="مثلاً: من صورت را بر مخرج تقسیم کردم و..."></textarea>
+        </div>
+
+        <div class="center" style="margin-top:6px;">
+          <button class="btn" id="labFinishBtn">ادامهٔ بازی ▶</button>
+        </div>
+        <p class="lab-skip">می‌توانی هر بخش را خالی رها کنی و ادامه دهی؛ هدف این بخش تمرین فکر کردن است، نه فقط جواب درست.</p>
+      </div>
+    </section>
+
+    <!-- GAME -->
+    <section id="screen-game" class="screen">
+      <div class="hud">
+        <div class="pill">🧑‍🎓 <span id="hudName" style="color:#7fe8c8; font-weight:800;">-</span></div>
+        <div class="pill" id="hudLevelPill">مرحله <b id="hudLevel">1</b> از <b id="hudTotal">8</b></div>
+        <div class="pill stars-mini" id="hudStars">☆☆☆</div>
+        <div class="pill">⏳ زمان: <b id="hudTime">45</b></div>
+        <div class="coin-badge">🪙 <span id="hudScore">0</span></div>
+      </div>
+      <p class="helper-note" style="margin-top:0;">با دکمهٔ 🖊️ گوشهٔ صفحه می‌توانی روی تختهٔ یادداشت محاسبه کنی.</p>
+
+      <div class="stage">
+        <div class="sign-wrap">
+          <div class="ropes-row"><div class="ropes"></div><div class="ropes"></div></div>
+          <div class="sign">
+            <div class="equation-row">
+              <div class="given-frac">
+                <span id="givenNum">11</span>
+                <span class="line"></span>
+                <span id="givenDen">5</span>
+              </div>
+              <span class="eq-sign">=</span>
+              <div class="answer-row">
+                <div class="slot" id="slotWhole" data-slot="whole"></div>
+                <div class="frac-stack">
+                  <div class="slot mini" id="slotNum" data-slot="num"></div>
+                  <div class="line" style="width:36px;background:var(--cream);"></div>
+                  <div class="slot mini" id="slotDen" data-slot="den"></div>
+                </div>
+              </div>
+            </div>
+            <button class="check-btn" id="checkBtn" disabled>🔍 بررسی پاسخ</button>
+            <div class="feedback" id="feedback"></div>
+            <div class="explain-box" id="explainBox"></div>
+            <div class="action-controls" id="actionControls" style="display:none;">
+              <div class="row">
+                <button class="btn ghost small" id="explainBtn">🔎 چرا؟</button>
+                <button class="btn secondary small" id="retryLevelBtn">🔁 امتحان دوباره</button>
+              </div>
+              <button class="btn small" id="nextBtn">مرحلهٔ بعد ◀</button>
+            </div>
+          </div>
+          <p class="helper-note">اول یک خانه را انتخاب کن، بعد روی سکهٔ درست کلیک کن.</p>
+        </div>
+
+        <div class="chest-panel">
+          <div class="burst"></div>
+          <div class="chest-icon">📦</div>
+          <div class="tiles" id="tiles"></div>
+          <div class="progress-chests" id="progressChests"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERSTITIAL (duo handoff) -->
+    <section id="screen-interstitial" class="screen">
+      <div class="inter-card">
+        <div class="chest-big">🤝</div>
+        <div class="speech" id="interMsg">آفرین! حالا نوبت بازیکن دوم است.</div>
+        <button class="btn" id="startP2Btn">🚀 شروع نوبتِ من</button>
+      </div>
+    </section>
+
+    <!-- END -->
+    <section id="screen-end" class="screen">
+      <div class="result-card">
+        <div class="chest-big" id="endChest">🏆</div>
+        <div class="speech" id="endMsg">آفرین!</div>
+
+        <div id="soloSummary">
+          <div class="score-big" id="finalScore">0</div>
+          <div class="stars-row" id="starsRow">☆☆☆</div>
+          <div class="pill" style="justify-content:center; gap:16px; display:flex;">
+            <span>✅ درست: <b id="finalCorrect">0</b> از <b id="finalTotal">۸</b></span>
+            <span>🪙 سکه‌ها: <b id="finalCoins">0</b></span>
+          </div>
+        </div>
+
+        <div class="duo-compare" id="duoCompare" style="display:none;"></div>
+
+        <div id="reportDetail"></div>
+
+        <div class="actionrow">
+          <button class="btn secondary" id="sendBtn">📩 ارسال نتیجه برای آموزگار</button>
+          <button class="btn ghost" id="copyBtn">📋 کپی نتیجه</button>
+          <button class="btn ghost" id="printBtn">🖨️ چاپ / ذخیرهٔ PDF</button>
+          <button class="btn ghost" id="imageBtn">📷 ذخیرهٔ تصویر گزارش</button>
+          <button class="btn ghost" id="restartBtn">🔁 بازی مجدد</button>
+        </div>
+        <div class="copied-msg" id="copiedMsg">نتیجه کپی شد ✔</div>
+      </div>
+    </section>
+
+    <footer>ساخته‌شده برای کلاس ریاضی • با آرزوی موفقیت از سرکار خانم مژگان احدی 🌟</footer>
+  </div>
+</div>
+
+<!-- FLOATING TOOLS -->
+<div class="tool-fab-row">
+  <button class="fab muted" id="musicBtn" title="پخش/قطع موسیقی">🔇</button>
+  <button class="fab" id="whiteboardBtn" title="تخته یادداشت">🖊️</button>
+</div>
+
+<!-- WHITEBOARD OVERLAY -->
+<div class="wb-overlay hidden" id="wbOverlay">
+  <div class="wb-panel">
+    <div class="wb-toolbar">
+      <button class="wb-color active" data-color="#1a1a1a" style="background:#1a1a1a;"></button>
+      <button class="wb-color" data-color="#c0392b" style="background:#c0392b;"></button>
+      <button class="wb-color" data-color="#2d6cdf" style="background:#2d6cdf;"></button>
+      <button class="wb-color" data-color="#1f8c52" style="background:#1f8c52;"></button>
+      <button class="wb-btn" id="wbEraser">پاک‌کن ✏️</button>
+      <button class="wb-btn" id="wbClear">پاک‌کردن همه 🗑️</button>
+      <span class="wb-label">تختهٔ محاسبه</span>
+      <button class="wb-btn close-btn" id="wbClose">✖ بستن</button>
+    </div>
+    <canvas id="wbCanvas"></canvas>
+    <div class="wb-hint">اینجا می‌توانی محاسبات کسرها را روی تخته بنویسی؛ بعد آن را می‌بندی و پاسخ را در بازی وارد می‌کنی.</div>
+  </div>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const TEACHER_EMAIL = "mojgan.ahadi@example.com";
+const TEACHER_NAME = "مژگان احدی";
+const ROUND_SECONDS = {easy:45, medium:55, hard:70};
+
+const LEVEL_SETS = {
+  easy:   [[11,5],[9,4],[13,6],[17,3],[10,3]],
+  medium: [[31,7],[32,5],[29,8],[34,6],[42,9]],
+  hard:   [[51,4],[59,5],[65,6],[93,7],[47,3]]
+};
+
+/* ================= STATE ================= */
+let mode = 'single';        // single | duo
+let difficulty = 'easy';
+let LEVELS = LEVEL_SETS.easy;
+let players = [];           // [{name, score, correctCount, levelStats:[]}]
+let currentPlayerIdx = 0;
+
+let levelIdx = 0;
+let score = 0;
+let correctCount = 0;
+let levelStats = [];
+let attemptsAtLevel = 0;
+let levelStartTime = 0;
+
+let timeLeft = ROUND_SECONDS.easy;
+let timerHandle = null;
+let activeSlotKey = "whole";
+let creativeLabDone = false;
+let creativeState = null;
+let target = {whole:0,num:0,den:0};
+let slotsFilled = {whole:null,num:null,den:null};
+let tilesData = [];
+let answered = false;
+
+/* ================= SOUND ENGINE ================= */
+let audioCtx = null;
+function getCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq, startOffset, duration, type, gainVal, pan){
+  try{
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    if(pan !== undefined && ctx.createStereoPanner){
+      const p = ctx.createStereoPanner(); p.pan.value = pan;
+      osc.connect(p); p.connect(g);
+    } else {
+      osc.connect(g);
+    }
+    g.connect(ctx.destination);
+    const t0 = ctx.currentTime + (startOffset||0);
+    const gv = gainVal!==undefined ? gainVal : 0.14;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(gv, t0+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+duration);
+    osc.start(t0);
+    osc.stop(t0+duration+0.05);
+  }catch(e){}
+}
+function playClickSound(){ playTone(880,0,0.06,'square',0.05); }
+function playCorrectSound(){
+  playTone(523.25,0,0.13,'triangle',0.17); playTone(659.25,0.09,0.13,'triangle',0.17);
+  playTone(783.99,0.18,0.16,'triangle',0.17); playTone(1046.50,0.28,0.30,'triangle',0.18);
+  playTone(1318.51,0.30,0.28,'sine',0.10);
+}
+function playWrongSound(){ playTone(233,0,0.20,'sawtooth',0.13); playTone(196,0.16,0.30,'sawtooth',0.13); }
+function playTimeUpSound(){ playTone(392,0,0.15,'square',0.1); playTone(330,0.15,0.15,'square',0.1); playTone(262,0.30,0.35,'square',0.1); }
+function playWinFanfare(){
+  playKick();
+  [523.25,659.25,783.99,1046.50,1318.51,1567.98].forEach((f,i)=>playTone(f, i*0.13, 0.28, 'triangle', 0.18));
+  setTimeout(()=>{ playKick(); playTone(1046.50,0,0.5,'square',0.14); }, 780);
+}
+
+function playKick(){
+  try{
+    const ctx=getCtx(); const osc=ctx.createOscillator(); const g=ctx.createGain();
+    osc.type='sine'; osc.connect(g); g.connect(ctx.destination);
+    const t0=ctx.currentTime;
+    osc.frequency.setValueAtTime(180,t0);
+    osc.frequency.exponentialRampToValueAtTime(60,t0+0.09);
+    g.gain.setValueAtTime(0.16,t0);
+    g.gain.exponentialRampToValueAtTime(0.001,t0+0.13);
+    osc.start(t0); osc.stop(t0+0.14);
+  }catch(e){}
+}
+function playNoiseHit(hp, decay, gainVal, pan){
+  try{
+    const ctx=getCtx();
+    const bufSize=Math.max(1,Math.floor(ctx.sampleRate*decay));
+    const buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufSize;i++) data[i]=Math.random()*2-1;
+    const noise=ctx.createBufferSource(); noise.buffer=buf;
+    const filt=ctx.createBiquadFilter(); filt.type='highpass'; filt.frequency.value=hp;
+    const g=ctx.createGain();
+    if(pan !== undefined && ctx.createStereoPanner){
+      const p = ctx.createStereoPanner(); p.pan.value = pan;
+      noise.connect(filt); filt.connect(p); p.connect(g);
+    } else {
+      noise.connect(filt); filt.connect(g);
+    }
+    g.connect(ctx.destination);
+    const t0=ctx.currentTime;
+    g.gain.setValueAtTime(gainVal,t0);
+    g.gain.exponentialRampToValueAtTime(0.001,t0+decay);
+    noise.start(t0); noise.stop(t0+decay+0.02);
+  }catch(e){}
+}
+function playHat(){ playNoiseHit(7500,0.045,0.075,0.22); }
+function playSnare(){ playNoiseHit(1800,0.14,0.17,0); }
+function playCrash(){ playNoiseHit(3200,0.55,0.14,-0.2); }
+function playPad(freqs, duration, gainVal){
+  freqs.forEach((f,i)=> playTone(f, 0, duration, 'sine', gainVal, (i-1)*0.18));
+}
+
+function playBell(freq, gainVal, pan){
+  playTone(freq, 0, 0.4, 'sine', gainVal, pan);
+  playTone(freq*2, 0, 0.22, 'sine', gainVal*0.4, pan);
+}
+
+let musicOn = false, musicTimer = null, stepIdx = 0, comboEnergy = 0;
+const BPM = 124; // ریتم آرام و بشاش، نه شتاب‌زده — تمرکز روی «شادی» نه سرعت
+const STEP_MS = 60000/BPM/4;
+/* گام دو ماژور (C major) و پیشرفت آکورد کاملاً ماژور C-F-G-C — بدون هیچ آکورد مینور، برای حس شاد و روشن */
+const melodyPattern = [
+  523.25,null,659.25,587.33, 783.99,null,659.25,587.33, 698.46,null,880.00,783.99, 783.99,null,659.25,523.25,
+  659.25,null,783.99,880.00, 1046.50,null,880.00,783.99, 880.00,null,1046.50,880.00, 783.99,null,659.25,523.25
+];
+const bassPattern = [
+  130.81,null,130.81,null, 174.61,null,174.61,null, 196.00,null,196.00,null, 130.81,null,130.81,null,
+  130.81,null,130.81,null, 174.61,null,174.61,null, 196.00,null,196.00,null, 130.81,null,130.81,null
+];
+/* آکورد شادِ کاملاً ماژور زیر ملودی: دو، فا، سل، دو */
+const chordPads = [[261.63,329.63,392.00],[174.61,220.00,261.63],[196.00,246.94,293.66],[261.63,329.63,392.00]];
+/* درام سبک و پرش‌دار به‌جای بیت سنگین — حس بازی‌گوش و شاد */
+const drumPattern = [
+  'kick',null,'hat',null,'clap',null,'hat',null,'kick',null,'hat',null,'clap',null,'hat',null,
+  'kick',null,'hat',null,'clap',null,'hat',null,'kick','hat','clap','hat','hat',null,'clap','crash'
+];
+function musicTick(){
+  const i = stepIdx % melodyPattern.length;
+  const note = melodyPattern[i];
+  if(note) playTone(note, 0, STEP_MS/1000*1.5, 'square', 0.05 + comboEnergy, 0.22);
+  const bass = bassPattern[i];
+  if(bass) playTone(bass, 0, STEP_MS/1000*1.4, 'triangle', 0.08, 0);
+  if(i % 4 === 0){
+    const chord = chordPads[Math.floor(i/4) % chordPads.length];
+    playPad(chord, STEP_MS/1000*3.2, 0.022 + comboEnergy*0.25);
+  }
+  /* چکش گلوکن‌اسپیل (زنگوله) روی ضرب‌های قوی — امضای صدای شاد */
+  if(i % 8 === 0) playBell((note||523.25)*2, 0.05, -0.15);
+  if(comboEnergy > 0.04 && i % 8 === 4){
+    playBell((note||659.25)*2, 0.06 + comboEnergy, 0.3);
+  }
+  const d = drumPattern[i];
+  if(d==='kick') playKick();
+  else if(d==='clap') playNoiseHit(2500,0.09,0.12,0);
+  else if(d==='hat') playHat();
+  else if(d==='crash') playCrash();
+  stepIdx++;
+}
+function startMusic(){ getCtx(); if(musicTimer) return; musicOn=true; stepIdx=0; $('musicBtn').textContent='🔊'; $('musicBtn').classList.remove('muted'); musicTick(); musicTimer=setInterval(musicTick,STEP_MS); }
+function stopMusic(){ musicOn=false; $('musicBtn').textContent='🔇'; $('musicBtn').classList.add('muted'); clearInterval(musicTimer); musicTimer=null; }
+/* هرچه پاسخ‌های درست پشت‌سرهم بیشتر شود، درخشش زنگوله‌ها بیشتر می‌شود (نه سرعت) */
+function boostMusicEnergy(){ comboEnergy = Math.min(comboEnergy+0.02, 0.1); }
+function resetMusicEnergy(){ comboEnergy = 0; }
+
+/* ================= HELPERS ================= */
+function $(id){ return document.getElementById(id); }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+/* ================= ACCESSIBILITY ================= */
+$('contrastBtn').addEventListener('click', ()=>{
+  document.body.classList.toggle('cvd-mode');
+  $('contrastBtn').classList.toggle('on');
+});
+let fsLevel = 1;
+$('fontBtn').addEventListener('click', ()=>{
+  fsLevel = fsLevel>=3 ? 1 : fsLevel+1;
+  $('wrapEl').classList.remove('fs-2','fs-3');
+  if(fsLevel===2) $('wrapEl').classList.add('fs-2');
+  if(fsLevel===3) $('wrapEl').classList.add('fs-3');
+  $('fontBtn').classList.toggle('on', fsLevel>1);
+});
+
+/* ================= START SCREEN CHOICES ================= */
+document.querySelectorAll('[data-mode]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('[data-mode]').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    mode = btn.dataset.mode;
+    $('p2Block').style.display = (mode==='duo') ? 'block' : 'none';
+    $('p1Label').textContent = (mode==='duo') ? 'نام بازیکن اول:' : 'نام و نام خانوادگی‌ات را بنویس:';
+  });
+});
+document.querySelectorAll('[data-diff]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('[data-diff]').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    difficulty = btn.dataset.diff;
+  });
+});
+
+/* ================= START GAME ================= */
+$('startBtn').addEventListener('click', ()=>{
+  const val = $('stName').value.trim();
+  if(!val){ $('stName').focus(); $('stName').style.borderColor = 'var(--crimson)'; return; }
+  let val2 = '';
+  if(mode==='duo'){
+    val2 = $('stName2').value.trim();
+    if(!val2){ $('stName2').focus(); $('stName2').style.borderColor = 'var(--crimson)'; return; }
+  }
+  LEVELS = LEVEL_SETS[difficulty];
+  players = [{name:val, score:0, correctCount:0, levelStats:[]}];
+  if(mode==='duo') players.push({name:val2, score:0, correctCount:0, levelStats:[]});
+  currentPlayerIdx = 0;
+  $('hudTotal').textContent = LEVELS.length;
+  startGameForPlayer(0);
+});
+$('stName').addEventListener('keydown', e=>{ if(e.key==='Enter') $('startBtn').click(); });
+$('stName2').addEventListener('keydown', e=>{ if(e.key==='Enter') $('startBtn').click(); });
+
+function startGameForPlayer(idx){
+  currentPlayerIdx = idx;
+  levelIdx = 0; score = 0; correctCount = 0; levelStats = [];
+  creativeLabDone = false; creativeState = null;
+  $('hudName').textContent = players[idx].name;
+  showScreen('screen-game');
+  buildProgressChests();
+  updateHud();
+  loadLevel();
+}
+
+function buildProgressChests(){
+  const wrap = $('progressChests'); wrap.innerHTML = '';
+  LEVELS.forEach((_,i)=>{ const s=document.createElement('span'); s.textContent='📦'; s.id='pc'+i; wrap.appendChild(s); });
+}
+function updateProgressChests(){
+  LEVELS.forEach((_,i)=>{
+    const el = $('pc'+i); el.classList.remove('done','now');
+    if(i < levelIdx){ el.classList.add('done'); el.textContent='✔'; }
+    else if(i === levelIdx){ el.classList.add('now'); el.textContent='📦'; }
+    else el.textContent='📦';
+  });
+}
+function updateHud(){
+  $('hudScore').textContent = score;
+  $('hudLevel').textContent = Math.min(levelIdx+1, LEVELS.length);
+  const pct = levelIdx===0 ? 0 : Math.round((correctCount/levelIdx)*100);
+  let stars = pct>=85 ? 3 : (pct>=55 ? 2 : (pct>0?1:0));
+  $('hudStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+}
+
+/* ================= LEVEL LOGIC ================= */
+function loadLevel(){
+  answered = false;
+  attemptsAtLevel = 0;
+  levelStartTime = Date.now();
+  const [n,d] = LEVELS[levelIdx];
+  target.whole = Math.floor(n/d);
+  target.num = n % d;
+  target.den = d;
+
+  $('givenNum').textContent = n;
+  $('givenDen').textContent = d;
+  updateProgressChests();
+  updateHud();
+
+  slotsFilled = {whole:null,num:null,den:null};
+  activeSlotKey = 'whole';
+  ['slotWhole','slotNum','slotDen'].forEach(id=>{
+    const el = $(id);
+    el.textContent = ''; el.innerHTML='';
+    el.className = 'slot' + (id==='slotNum'||id==='slotDen' ? ' mini' : '');
+  });
+  $('slotWhole').classList.add('active');
+
+  $('checkBtn').disabled = true;
+  $('checkBtn').style.display = 'block';
+  $('feedback').className = 'feedback'; $('feedback').textContent = '';
+  $('explainBox').className = 'explain-box'; $('explainBox').innerHTML = '';
+  $('actionControls').style.display = 'none';
+
+  buildTiles();
+  timeLeft = ROUND_SECONDS[difficulty];
+  $('hudTime').textContent = timeLeft;
+  clearInterval(timerHandle);
+  timerHandle = setInterval(()=>{
+    timeLeft--; $('hudTime').textContent = timeLeft;
+    if(timeLeft<=0){ clearInterval(timerHandle); if(!answered) checkAnswer(true); }
+  },1000);
+}
+
+function buildTiles(){
+  const correctVals = [target.whole, target.num, target.den];
+  let pool = correctVals.slice();
+  const fillerMax = difficulty==='hard' ? 20 : 9;
+  while(pool.length < 6){ pool.push(1 + Math.floor(Math.random()*fillerMax)); }
+  pool = shuffle(pool);
+  tilesData = pool.map((v,i)=>({id:'t'+i, value:v, used:false}));
+
+  const wrap = $('tiles'); wrap.innerHTML = '';
+  tilesData.forEach((t,i)=>{
+    const b = document.createElement('div');
+    b.className = 'tile' + (t.value>=10 ? ' two-digit' : '');
+    b.style.setProperty('--d', i);
+    b.textContent = t.value; b.id = t.id;
+    b.addEventListener('click', ()=> placeTile(t));
+    wrap.appendChild(b);
+  });
+}
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+const SLOT_ELS = { whole:'slotWhole', num:'slotNum', den:'slotDen' };
+const SLOT_ORDER = ['whole','num','den'];
+
+document.querySelectorAll('.slot').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    if(answered) return;
+    const key = el.getAttribute('data-slot');
+    playClickSound();
+    if(slotsFilled[key] !== null){
+      const tId = slotsFilled[key];
+      const tEl = document.getElementById(tId);
+      if(tEl) tEl.classList.remove('used');
+      slotsFilled[key] = null;
+      el.textContent=''; el.innerHTML=''; el.classList.remove('filled','two-digit');
+      setActiveSlot(key);
+    } else { setActiveSlot(key); }
+    refreshCheckBtn();
+  });
+});
+function setActiveSlot(key){
+  activeSlotKey = key;
+  SLOT_ORDER.forEach(k=>{ $(SLOT_ELS[k]).classList.toggle('active', k===key); });
+}
+function placeTile(tile){
+  if(answered || tile.used) return;
+  const key = activeSlotKey;
+  if(slotsFilled[key] !== null) return;
+  playClickSound();
+  slotsFilled[key] = tile.id;
+  tile.used = true;
+  $(tile.id).classList.add('used');
+
+  const el = $(SLOT_ELS[key]);
+  el.textContent = tile.value;
+  el.classList.add('filled');
+  el.classList.toggle('two-digit', tile.value>=10);
+  el.classList.remove('active');
+
+  const nextEmpty = SLOT_ORDER.find(k=>slotsFilled[k]===null);
+  if(nextEmpty) setActiveSlot(nextEmpty);
+  refreshCheckBtn();
+}
+function refreshCheckBtn(){ $('checkBtn').disabled = !SLOT_ORDER.every(k=>slotsFilled[k]!==null); }
+$('checkBtn').addEventListener('click', ()=> checkAnswer(false));
+function tileValue(id){ const t = tilesData.find(x=>x.id===id); return t ? t.value : null; }
+
+/* ================= EXPLANATION ANIMATION ================= */
+function buildExplanationHTML(n,d,whole,rem){
+  let html = `<div>عدد <b>${n}</b> را به گروه‌های <b>${d}</b>‌تایی تقسیم می‌کنیم:</div>`;
+  html += `<div class="explain-strip">`;
+  let sqIdx = 0;
+  for(let g=0; g<whole; g++){
+    html += `<div class="grp">`;
+    for(let s=0;s<d;s++){ html += `<div class="explain-sq" style="animation-delay:${(sqIdx*0.02)}s"></div>`; sqIdx++; }
+    html += `</div>`;
+  }
+  if(rem>0){
+    html += `<div class="grp" style="background:transparent;border-style:solid;">`;
+    for(let s=0;s<rem;s++){ html += `<div class="explain-sq rem" style="animation-delay:${(sqIdx*0.02)}s"></div>`; sqIdx++; }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  html += `<div>${whole} گروهِ کامل به‌دست می‌آید و ${rem} تکه اضافه می‌ماند؛ پس <b>${n}/${d} = ${whole} و ${rem}/${d}</b> است.</div>`;
+  return html;
+}
+
+/* ================= ANIMATED TUTORIAL (predict → observe → explain) ================= */
+const TUTORIAL_EXAMPLES = [[7,3],[11,4],[17,5]];
+let tutIdx = 0;
+function buildTutProgress(){
+  const wrap = $('tutProgress'); wrap.innerHTML = '';
+  TUTORIAL_EXAMPLES.forEach((_,i)=>{
+    const s = document.createElement('span');
+    if(i<tutIdx) s.classList.add('done');
+    wrap.appendChild(s);
+  });
+}
+function renderTutorial(){
+  const [n,d] = TUTORIAL_EXAMPLES[tutIdx];
+  const whole = Math.floor(n/d), rem = n%d;
+  buildTutProgress();
+  $('tutTitle').textContent = `مثال ${tutIdx+1} از ${TUTORIAL_EXAMPLES.length}: کسر ${n}/${d}`;
+  $('tutPredictText').innerHTML = `پیش از دیدن جواب، خودت حدس بزن: اگر <b>${n}</b> شیء را در گروه‌های <b>${d}</b>‌تایی دسته‌بندی کنیم، چند گروهِ کامل ساخته می‌شود؟`;
+  const guessRow = $('tutGuessRow'); guessRow.innerHTML = '';
+  const options = new Set([whole]);
+  while(options.size < 3){ options.add(Math.max(0, whole + (Math.random()<0.5?-1:1)*(1+Math.floor(Math.random()*2)))); }
+  const shuffledOpts = shuffle([...options]);
+  shuffledOpts.forEach(opt=>{
+    const b = document.createElement('button');
+    b.textContent = opt;
+    b.addEventListener('click', ()=>{
+      guessRow.querySelectorAll('button').forEach(x=>x.classList.remove('picked'));
+      b.classList.add('picked');
+      $('tutGuessFeedback').textContent = (opt===whole) ? '👍 حدس خوبی بود! حالا با دکمهٔ «نمایش جواب» مطمئن شو.' : 'باشه، حالا با «نمایش جواب» ببین درست بود یا نه.';
+    });
+    guessRow.appendChild(b);
+  });
+  $('tutGuessFeedback').textContent = '';
+  $('tutAnim').className = 'tut-anim-box';
+  $('tutAnim').innerHTML = buildExplanationHTML(n,d,whole,rem);
+  $('tutRule').className = 'tut-rule-box';
+  $('tutRule').innerHTML = `📐 <b>قاعدهٔ کلی:</b> صورت را بر مخرج تقسیم می‌کنیم؛ خارج‌قسمت می‌شود <b>عدد صحیح</b>، باقیمانده می‌شود <b>صورتِ کسرِ جدید</b> و مخرج همان مخرج قبلی باقی می‌ماند. یعنی ${n}/${d} = ${whole} و ${rem}/${d}.`;
+  $('tutPrev').disabled = (tutIdx===0);
+  $('tutNext').textContent = (tutIdx===TUTORIAL_EXAMPLES.length-1) ? '✅ پایان آموزش' : 'مثال بعدی ◀';
+}
+$('tutReveal').addEventListener('click', ()=>{
+  $('tutAnim').classList.add('show');
+  $('tutRule').classList.add('show');
+});
+$('tutNext').addEventListener('click', ()=>{
+  if(tutIdx < TUTORIAL_EXAMPLES.length-1){ tutIdx++; renderTutorial(); }
+  else { showScreen('screen-start'); }
+});
+$('tutPrev').addEventListener('click', ()=>{ if(tutIdx>0){ tutIdx--; renderTutorial(); } });
+$('tutorialBtn').addEventListener('click', ()=>{ tutIdx=0; renderTutorial(); showScreen('screen-tutorial'); });
+
+$('explainBtn').addEventListener('click', ()=>{
+  const box = $('explainBox');
+  if(box.classList.contains('show')){ box.classList.remove('show'); return; }
+  box.innerHTML = buildExplanationHTML(LEVELS[levelIdx][0], LEVELS[levelIdx][1], target.whole, target.num);
+  box.classList.add('show');
+});
+
+/* ================= CREATIVE LAB (problem-solving & creative-thinking booster) ================= */
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a || 1; }
+
+function startCreativeLab(){
+  const pool = LEVEL_SETS[difficulty];
+  const [n,d] = pool[Math.floor(Math.random()*pool.length)];
+  creativeState = {
+    n, d, whole:Math.floor(n/d), num:n%d, den:d,
+    equivDone:false, equivAttempts:0,
+    designN:null, designD:null, designSet:false, designCorrect:false, designAttempts:0,
+    reflection:'', creativeScore:0
+  };
+
+  $('labCardEquiv').style.display='block';
+  $('labCardDesign').style.display='none';
+  $('labCardReflect').style.display='none';
+  $('labEquivTarget').textContent = `${n}/${d}  =  ${creativeState.whole} و ${creativeState.num}/${creativeState.den}`;
+  $('labEquivNum').value=''; $('labEquivDen').value='';
+  $('labEquivFeedback').className='lab-feedback'; $('labEquivFeedback').textContent='';
+  $('labDesignNum').value=''; $('labDesignDen').value='';
+  $('labDesignSolveBox').style.display='none';
+  $('labDesignFeedback').className='lab-feedback'; $('labDesignFeedback').textContent='';
+  $('labReflection').value='';
+
+  showScreen('screen-creative');
+}
+
+$('labEquivCheck').addEventListener('click', ()=>{
+  const n2 = parseInt($('labEquivNum').value,10);
+  const d2 = parseInt($('labEquivDen').value,10);
+  const fb = $('labEquivFeedback');
+  fb.className='lab-feedback show';
+  if(!n2 || !d2 || d2<=0){
+    fb.classList.add('bad'); fb.textContent = 'لطفاً صورت و مخرج را وارد کن (مخرج نباید صفر باشد).';
+    return;
+  }
+  creativeState.equivAttempts++;
+  const sameAsOriginal = (n2===creativeState.n && d2===creativeState.d);
+  const equalValue = (n2 * creativeState.d === creativeState.n * d2);
+  if(equalValue && !sameAsOriginal){
+    creativeState.equivDone = true;
+    creativeState.creativeScore += 6;
+    fb.classList.add('ok');
+    fb.textContent = `🎉 عالی! ${n2}/${d2} همان مقدار ${creativeState.n}/${creativeState.d} است چون از ضرب صورت و مخرج در یک عدد یکسان به‌دست می‌آید. تو نشان دادی یک عدد مخلوط می‌تواند از چند کسر متفاوت ساخته شود!`;
+    playCorrectSound();
+    setTimeout(()=>{ $('labCardDesign').style.display='block'; }, 900);
+  } else if(equalValue && sameAsOriginal){
+    fb.classList.add('hint');
+    fb.textContent = 'این همان کسر اولیه است؛ یک کسرِ متفاوت (مثلاً با ضرب کردن صورت و مخرج در ۲) امتحان کن.';
+    playWrongSound();
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = 'هنوز درست نیست. راهنمایی: عدد صورت و مخرجِ اصلی را در یک عدد دلخواه (مثلاً ۲ یا ۳) ضرب کن.';
+    playWrongSound();
+  }
+});
+
+$('labDesignSet').addEventListener('click', ()=>{
+  const n2 = parseInt($('labDesignNum').value,10);
+  const d2 = parseInt($('labDesignDen').value,10);
+  const fb = $('labDesignFeedback');
+  fb.className='lab-feedback show';
+  if(!n2 || !d2 || d2<=0 || n2<=d2){
+    fb.classList.add('bad'); fb.textContent = 'کسر باید بزرگ‌تر از واحد باشد؛ یعنی صورت باید از مخرج بزرگ‌تر باشد.';
+    return;
+  }
+  creativeState.designN = n2; creativeState.designD = d2; creativeState.designSet = true;
+  fb.classList.add('ok'); fb.textContent = `کسرِ ${n2}/${d2} ثبت شد. حالا خودت آن را حل کن!`;
+  $('labDesignDenShow').textContent = d2;
+  $('labDesignSolveBox').style.display='block';
+  $('labDesignWhole').value=''; $('labDesignRem').value='';
+});
+
+$('labDesignCheck').addEventListener('click', ()=>{
+  if(!creativeState.designSet) return;
+  const w = parseInt($('labDesignWhole').value,10);
+  const r = parseInt($('labDesignRem').value,10);
+  const fb = $('labDesignFeedback');
+  const correctW = Math.floor(creativeState.designN/creativeState.designD);
+  const correctR = creativeState.designN % creativeState.designD;
+  creativeState.designAttempts++;
+  fb.className='lab-feedback show';
+  if(w===correctW && r===correctR){
+    creativeState.designCorrect = true;
+    creativeState.creativeScore += 6;
+    fb.classList.add('ok');
+    fb.textContent = `✔ درسته! ${creativeState.designN}/${creativeState.designD} = ${correctW} و ${correctR}/${creativeState.designD}. آفرین، هم مسئله ساختی هم حلش کردی!`;
+    playCorrectSound();
+    setTimeout(()=>{ $('labCardReflect').style.display='block'; }, 700);
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = `هنوز درست نیست؛ پاسخ درست: ${correctW} و ${correctR}/${creativeState.designD} است. یک‌بار دیگر امتحان کن یا ادامه بده.`;
+    playWrongSound();
+    setTimeout(()=>{ $('labCardReflect').style.display='block'; }, 700);
+  }
+});
+
+$('labFinishBtn').addEventListener('click', ()=>{
+  creativeState.reflection = $('labReflection').value.trim();
+  creativeLabDone = true;
+  score += creativeState.creativeScore;
+  completeLevels();
+});
+
+function buildCreativeReportHTML(p){
+  const c = p.creative;
+  if(!c) return '';
+  let html = `<div class="insight-line" style="text-align:right;">🎨 <b>آزمایشگاه خلاقیت:</b><br>`;
+  html += `کسرِ پایه: ${c.n}/${c.d} = ${c.whole} و ${c.num}/${c.den}<br>`;
+  html += c.equivDone ? `✔ کسرِ معادلِ متفاوتی پیدا کرد (در ${c.equivAttempts} تلاش).<br>` : `کسرِ معادلِ متفاوت پیدا نشد.<br>`;
+  if(c.designSet){
+    html += `کسرِ طراحی‌شده توسط دانش‌آموز: ${c.designN}/${c.designD} — ${c.designCorrect ? 'حل صحیح ✔' : 'حل نادرست ✖'}<br>`;
+  } else {
+    html += `مسئلهٔ شخصی طراحی نشد.<br>`;
+  }
+  if(c.reflection){
+    html += `💭 استراتژیِ نوشته‌شده: «${c.reflection}»<br>`;
+  }
+  html += `امتیاز خلاقیت: ${c.creativeScore}</div>`;
+  return html;
+}
+
+$('retryLevelBtn').addEventListener('click', ()=>{
+  answered = false;
+  attemptsAtLevel++;
+  slotsFilled = {whole:null,num:null,den:null};
+  activeSlotKey = 'whole';
+  ['slotWhole','slotNum','slotDen'].forEach(id=>{
+    const el = $(id);
+    el.textContent=''; el.innerHTML='';
+    el.className = 'slot' + (id==='slotNum'||id==='slotDen' ? ' mini' : '');
+  });
+  $('slotWhole').classList.add('active');
+  tilesData.forEach(t=>{ t.used=false; $(t.id).classList.remove('used'); });
+  $('checkBtn').disabled = true; $('checkBtn').style.display='block';
+  $('feedback').className='feedback'; $('feedback').textContent='';
+  $('explainBox').className='explain-box'; $('explainBox').innerHTML='';
+  $('actionControls').style.display = 'none';
+});
+
+/* ================= CHECK ANSWER ================= */
+function checkAnswer(timedOut){
+  if(answered) return;
+  answered = true;
+  clearInterval(timerHandle);
+
+  const gotWhole = slotsFilled.whole!==null ? tileValue(slotsFilled.whole) : null;
+  const gotNum = slotsFilled.num!==null ? tileValue(slotsFilled.num) : null;
+  const gotDen = slotsFilled.den!==null ? tileValue(slotsFilled.den) : null;
+  const ok = (gotWhole===target.whole && gotNum===target.num && gotDen===target.den);
+
+  ['whole','num','den'].forEach(k=>{
+    const el = $(SLOT_ELS[k]);
+    el.classList.remove('active');
+    const val = k==='whole'?gotWhole:(k==='num'?gotNum:gotDen);
+    const correctVal = target[k];
+    const isRight = val===correctVal;
+    el.classList.add(isRight ? 'correct' : 'wrong');
+    if(val===null) el.textContent = '؟';
+    const mark = document.createElement('span');
+    mark.className='mark'; mark.textContent = isRight ? '✔' : '✖';
+    el.appendChild(mark);
+  });
+
+  const timeUsed = ROUND_SECONDS[difficulty] - timeLeft;
+  const fb = $('feedback');
+  fb.classList.add('show');
+  $('actionControls').style.display = 'flex';
+
+  const canRetry = !ok && !timedOut && attemptsAtLevel < 2;
+  $('retryLevelBtn').style.display = canRetry ? 'inline-block' : 'none';
+  $('nextBtn').textContent = ok ? 'مرحلهٔ بعد ◀' : (canRetry ? 'رد شدن، مرحلهٔ بعد ◀' : 'مرحلهٔ بعد ◀');
+
+  if(ok){
+    const bonus = Math.max(0, Math.round(timeLeft/3));
+    score += 10 + bonus; correctCount++;
+    fb.classList.add('ok');
+    fb.textContent = `✔ آفرین! ${LEVELS[levelIdx][0]}/${LEVELS[levelIdx][1]} = ${target.whole} و ${target.num}/${target.den} است.`;
+    playCorrectSound();
+    if(musicOn) boostMusicEnergy();
+    levelStats.push({level:levelIdx+1, frac:`${LEVELS[levelIdx][0]}/${LEVELS[levelIdx][1]}`, correct:true, attempts:attemptsAtLevel+1, time:timeUsed});
+  } else {
+    fb.classList.add('bad');
+    fb.textContent = timedOut
+      ? `⏰ زمان تمام شد! پاسخ درست: ${target.whole} و ${target.num}/${target.den}`
+      : `✖ پاسخ درست: ${target.whole} و ${target.num}/${target.den}`;
+    if(timedOut) playTimeUpSound(); else playWrongSound();
+    resetMusicEnergy();
+    if(!canRetry){
+      levelStats.push({level:levelIdx+1, frac:`${LEVELS[levelIdx][0]}/${LEVELS[levelIdx][1]}`, correct:false, attempts:attemptsAtLevel+1, time:timeUsed});
+    }
+    if(attemptsAtLevel>=1 && !timedOut){
+      // adaptive: after repeated mistakes, auto-open the explanation
+      $('explainBox').innerHTML = buildExplanationHTML(LEVELS[levelIdx][0], LEVELS[levelIdx][1], target.whole, target.num);
+      $('explainBox').classList.add('show');
+    }
+  }
+  updateHud();
+  $('checkBtn').style.display = 'none';
+  $('nextBtn').onclick = goNext;
+}
+
+function goNext(){
+  levelIdx++;
+  if(levelIdx >= LEVELS.length){
+    if(!creativeLabDone){ startCreativeLab(); return; }
+    completeLevels();
+  } else {
+    loadLevel();
+  }
+}
+function completeLevels(){
+  players[currentPlayerIdx].score = score;
+  players[currentPlayerIdx].correctCount = correctCount;
+  players[currentPlayerIdx].levelStats = levelStats;
+  players[currentPlayerIdx].creative = creativeState;
+  if(mode==='duo' && currentPlayerIdx===0){
+    $('interMsg').textContent = `آفرین ${players[0].name}! نتیجه‌ات ثبت شد. حالا نوبت ${players[1].name} است تا همین مراحل را انجام دهد.`;
+    showScreen('screen-interstitial');
+  } else {
+    finishGame();
+  }
+}
+$('startP2Btn').addEventListener('click', ()=> startGameForPlayer(1));
+
+/* ================= END / REPORT ================= */
+function starsFor(pct){ return pct>=85 ? 3 : (pct>=55 ? 2 : 1); }
+
+function buildStatsTable(p){
+  let rows = p.levelStats.map(s=>`<tr><td>${s.level}</td><td>${s.frac}</td><td>${s.correct?'✔':'✖'}</td><td>${s.attempts}</td><td>${s.time}s</td></tr>`).join('');
+  return `<table><thead><tr><th>مرحله</th><th>کسر</th><th>نتیجه</th><th>تلاش</th><th>زمان</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function weakestInsight(p){
+  const wrongOnes = p.levelStats.filter(s=>!s.correct || s.attempts>1);
+  if(wrongOnes.length===0) return `${p.name} در همهٔ مراحل بدون نیاز به تلاش دوباره موفق بود؛ عالی!`;
+  const worst = wrongOnes.sort((a,b)=> b.attempts-a.attempts)[0];
+  return `بیشترین چالش ${p.name} در مرحلهٔ ${worst.level} (کسر ${worst.frac}) بود — تمرین بیشتر روی این نوع کسرها پیشنهاد می‌شود.`;
+}
+function avgTime(p){
+  if(p.levelStats.length===0) return 0;
+  const total = p.levelStats.reduce((a,s)=>a+s.time,0);
+  return Math.round(total/p.levelStats.length);
+}
+
+function finishGame(){
+  clearInterval(timerHandle);
+  updateProgressChestsFinal();
+  launchConfetti();
+  playWinFanfare();
+
+  const diffLabel = {easy:'آسان', medium:'متوسط', hard:'سخت'}[difficulty];
+  const today = new Date().toLocaleDateString('fa-IR');
+
+  if(mode==='single'){
+    const p = players[0];
+    $('soloSummary').style.display='block';
+    $('duoCompare').style.display='none';
+    const pct = Math.round((p.correctCount/LEVELS.length)*100);
+    $('finalScore').textContent = p.score;
+    $('finalCorrect').textContent = p.correctCount;
+    $('finalTotal').textContent = LEVELS.length;
+    $('finalCoins').textContent = p.score;
+    let stars = starsFor(pct);
+    $('starsRow').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+    let msg;
+    if(pct>=85) msg = `آفرین ${p.name} جان! گنج بزرگ باز شد؛ تو استاد تبدیل کسرها شدی! 🏆`;
+    else if(pct>=55) msg = `آفرین ${p.name}! خیلی خوب پیش رفتی، با کمی تمرین بیشتر عالی می‌شوی. 🌟`;
+    else msg = `${p.name} جان، تلاش خوبی بود! یک‌بار دیگر تمرین کن تا کاملاً مسلط شوی. 💪`;
+    $('endMsg').textContent = msg;
+
+    $('reportDetail').innerHTML = `
+      <h4>📊 گزارش تفصیلی برای آموزگار</h4>
+      <div>دانش‌آموز: <b>${p.name}</b> &nbsp; | &nbsp; آموزگار: <b>${TEACHER_NAME}</b></div>
+      <div>سطح دشواری: <b>${diffLabel}</b> &nbsp; | &nbsp; تاریخ: <b>${today}</b></div>
+      <div>امتیاز: <b>${p.score}</b> &nbsp; | &nbsp; درست: <b>${p.correctCount}</b> از ${LEVELS.length} &nbsp; | &nbsp; میانگین زمان پاسخ: <b>${avgTime(p)} ثانیه</b></div>
+      ${buildStatsTable(p)}
+      <div class="insight-line">💡 ${weakestInsight(p)}</div>
+      ${buildCreativeReportHTML(p)}
+    `;
+  } else {
+    $('soloSummary').style.display='none';
+    const [p1,p2] = players;
+    const winnerIdx = p1.score===p2.score ? -1 : (p1.score>p2.score?0:1);
+    $('endMsg').textContent = winnerIdx===-1
+      ? `مساوی شدید! هر دو نفر عالی بازی کردید. 🤝`
+      : `آفرین ${players[winnerIdx].name}! برندهٔ این دور شدی. 🏆`;
+
+    const dc = $('duoCompare'); dc.style.display='flex'; dc.innerHTML = players.map((p,i)=>{
+      const pct = Math.round((p.correctCount/LEVELS.length)*100);
+      const stars = starsFor(pct);
+      return `<div class="duo-card ${i===winnerIdx?'winner':''}">
+        <h3>${p.name}${i===winnerIdx?' 🏆':''}</h3>
+        <div class="sc">${p.score}</div>
+        <div>${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+        <div>درست: ${p.correctCount}/${LEVELS.length}</div>
+      </div>`;
+    }).join('');
+
+    $('reportDetail').innerHTML = `
+      <h4>📊 گزارش تفصیلی برای آموزگار (دو نفره)</h4>
+      <div>آموزگار: <b>${TEACHER_NAME}</b> &nbsp; | &nbsp; سطح دشواری: <b>${diffLabel}</b> &nbsp; | &nbsp; تاریخ: <b>${today}</b></div>
+      ${players.map(p=>`
+        <div style="margin-top:10px; border-top:1px dashed #d8c393; padding-top:6px;">
+          <div>بازیکن: <b>${p.name}</b> — امتیاز: <b>${p.score}</b> — درست: ${p.correctCount}/${LEVELS.length} — میانگین زمان: ${avgTime(p)}s</div>
+          ${buildStatsTable(p)}
+          <div class="insight-line">💡 ${weakestInsight(p)}</div>
+          ${buildCreativeReportHTML(p)}
+        </div>`).join('')}
+    `;
+  }
+
+  showScreen('screen-end');
+}
+function updateProgressChestsFinal(){
+  LEVELS.forEach((_,i)=>{ const el=$('pc'+i); el.classList.remove('now'); el.classList.add('done'); el.textContent='✔'; });
+}
+
+/* ================= EXPORT / SEND ================= */
+function buildResultText(){
+  const today = new Date().toLocaleDateString('fa-IR');
+  const diffLabel = {easy:'آسان', medium:'متوسط', hard:'سخت'}[difficulty];
+  let lines = [`نتیجهٔ بازی «صندوقچهٔ کسرها» - تبدیل کسر به عدد مخلوط`, `تاریخ: ${today}`, `سطح دشواری: ${diffLabel}`, ``];
+  players.forEach(p=>{
+    lines.push(`دانش‌آموز: ${p.name}`);
+    lines.push(`امتیاز: ${p.score} | درست: ${p.correctCount} از ${LEVELS.length} | میانگین زمان: ${avgTime(p)} ثانیه`);
+    lines.push(weakestInsight(p));
+    if(p.creative){
+      const c = p.creative;
+      lines.push(`آزمایشگاه خلاقیت: کسر معادل ${c.equivDone?'پیدا شد':'پیدا نشد'} | مسئله شخصی ${c.designSet ? (c.designCorrect?'طراحی و درست حل شد':'طراحی شد ولی حل نادرست بود') : 'طراحی نشد'} | امتیاز خلاقیت: ${c.creativeScore}`);
+      if(c.reflection) lines.push(`استراتژی نوشته‌شده: ${c.reflection}`);
+    }
+    lines.push(``);
+  });
+  lines.push(`با احترام برای سرکار خانم ${TEACHER_NAME}`);
+  return lines.join('\n');
+}
+$('sendBtn').addEventListener('click', ()=>{
+  const body = buildResultText();
+  const subject = `نتیجه بازی تبدیل کسرها - ${players.map(p=>p.name).join(' و ')}`;
+  window.location.href = `mailto:${TEACHER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+});
+$('copyBtn').addEventListener('click', ()=>{
+  const text = buildResultText();
+  navigator.clipboard.writeText(text).then(()=>{
+    $('copiedMsg').classList.add('show'); setTimeout(()=>$('copiedMsg').classList.remove('show'), 2500);
+  }).catch(()=> alert(text));
+});
+$('printBtn').addEventListener('click', ()=> window.print());
+$('imageBtn').addEventListener('click', ()=>{
+  if(typeof html2canvas === 'undefined'){ alert('امکان ذخیرهٔ تصویر در دسترس نیست؛ لطفاً از گزینهٔ چاپ/PDF استفاده کنید.'); return; }
+  html2canvas($('reportDetail'), {scale:2, backgroundColor:'#fffdf7'}).then(canvas=>{
+    const link = document.createElement('a');
+    link.download = 'گزارش-بازی-کسرها.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+});
+$('restartBtn').addEventListener('click', ()=>{
+  showScreen('screen-start');
+});
+
+/* ================= CONFETTI ================= */
+function launchConfetti(){
+  const colors = ['#f2c14e','#5fbf6f','#e0526a','#ffe9ad','#c98f28'];
+  for(let i=0;i<60;i++){
+    const c = document.createElement('div'); c.className='confetti';
+    const size = 6+Math.random()*6;
+    c.style.width = size+'px'; c.style.height = (size*0.4)+'px';
+    c.style.left = Math.random()*100+'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.opacity = 0.9;
+    document.body.appendChild(c);
+    const duration = 2500+Math.random()*2000;
+    const rotate = Math.random()*720-360;
+    c.animate([{transform:`translateY(0) rotate(0deg)`, opacity:1},{transform:`translateY(105vh) rotate(${rotate}deg)`, opacity:.9}], {duration, easing:'ease-in'});
+    setTimeout(()=>c.remove(), duration+100);
+  }
+}
+
+/* ================= MUSIC BUTTON ================= */
+$('musicBtn').addEventListener('click', ()=>{ if(musicOn) stopMusic(); else startMusic(); });
+
+/* ================= WHITEBOARD ================= */
+(function(){
+  const canvas = document.getElementById('wbCanvas');
+  const ctx2d = canvas.getContext('2d');
+  let drawing=false, currentColor='#1a1a1a', isEraser=false, wbInitialized=false;
+  function resizeAndFill(){
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width; canvas.height = rect.height;
+    ctx2d.fillStyle='#ffffff'; ctx2d.fillRect(0,0,canvas.width,canvas.height);
+  }
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return {x: cx-rect.left, y: cy-rect.top};
+  }
+  function start(e){ drawing=true; const p=getPos(e); ctx2d.beginPath(); ctx2d.moveTo(p.x,p.y); e.preventDefault(); }
+  function move(e){
+    if(!drawing) return;
+    const p=getPos(e);
+    ctx2d.lineWidth = isEraser ? 24 : 3.2;
+    ctx2d.lineCap='round';
+    ctx2d.strokeStyle = isEraser ? '#ffffff' : currentColor;
+    ctx2d.lineTo(p.x,p.y); ctx2d.stroke(); e.preventDefault();
+  }
+  function end(){ drawing=false; }
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', end);
+  document.querySelectorAll('.wb-color').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.wb-color').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); currentColor = btn.dataset.color; isEraser=false;
+      document.getElementById('wbEraser').classList.remove('active');
+    });
+  });
+  document.getElementById('wbEraser').addEventListener('click', ()=>{ isEraser=true; document.getElementById('wbEraser').classList.add('active'); });
+  document.getElementById('wbClear').addEventListener('click', ()=>{ ctx2d.fillStyle='#ffffff'; ctx2d.fillRect(0,0,canvas.width,canvas.height); });
+  document.getElementById('wbClose').addEventListener('click', ()=>{ document.getElementById('wbOverlay').classList.add('hidden'); });
+  document.getElementById('whiteboardBtn').addEventListener('click', ()=>{
+    document.getElementById('wbOverlay').classList.remove('hidden');
+    if(!wbInitialized){ resizeAndFill(); wbInitialized=true; }
+  });
+})();
+</script>
+</body>
+</html>
